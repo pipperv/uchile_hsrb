@@ -128,7 +128,7 @@ def move_base_goal(x, y, theta):
     goal = MoveBaseGoal()
 
     # "map"座標を基準座標に指定
-    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.frame_id = "odom"
 
     # ゴールのx,y座標をセットします
     goal.target_pose.pose.position.x = x
@@ -199,7 +199,7 @@ def move_wholebody_ik(x, y, z, roll, pitch, yaw):
     p = PoseStamped()
 
     # "map"座標を基準座標に指定
-    p.header.frame_id = "/map"
+    p.header.frame_id = "/odom"
 
     # エンドエフェクタの目標位置姿勢のx,y,z座標をセットします
     p.pose.position.x = x
@@ -217,6 +217,24 @@ def move_wholebody_ik(x, y, z, roll, pitch, yaw):
 # moveitでの制御対象としてアームを指定
 arm = moveit_commander.MoveGroupCommander('arm')
 
+def move_arm_ik(x, y, z, roll, pitch, yaw):
+
+    p = PoseStamped()
+
+    # "map"座標を基準座標に指定
+    p.header.frame_id = "/base_link"
+
+    # エンドエフェクタの目標位置姿勢のx,y,z座標をセットします
+    p.pose.position.x = x
+    p.pose.position.y = y
+    p.pose.position.z = z
+
+    # オイラー角をクオータニオンに変換します
+    p.pose.orientation = quaternion_from_euler(roll, pitch, yaw)
+
+    # 目標位置姿勢をセット
+    arm.set_pose_target(p)
+    return arm.go()
 
 def move_arm_neutral():
     u"""ロボットをニュートラルの姿勢に移動
