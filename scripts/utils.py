@@ -13,6 +13,7 @@ import subprocess
 import tf
 import tf2_ros
 import time
+import tf2_geometry_msgs as tf2gm
 
 from geometry_msgs.msg import PoseStamped, Quaternion, TransformStamped, Twist
 from IPython.display import Image
@@ -172,6 +173,19 @@ def get_relative_coordinate(parent, child):
 
     return trans.transform
 
+def get_pose_relative_coordinate(targ_frame, p):
+
+    tfBuffer = tf2_ros.Buffer()
+    listener = tf2_ros.TransformListener(tfBuffer)
+
+    while not rospy.is_shutdown():
+        try:
+            trans = tfBuffer.transform(p, targ_frame, rospy.Duration(4.0))
+            break
+        except (tf2.LookupException):
+            pass
+
+    return trans.pose
 
 # moveitでの制御対象として全身制御を指定
 whole_body = moveit_commander.MoveGroupCommander("whole_body_light")
