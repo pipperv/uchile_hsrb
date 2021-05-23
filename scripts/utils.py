@@ -161,15 +161,19 @@ def get_relative_coordinate(parent, child):
     listener = tf2_ros.TransformListener(tfBuffer)
 
     trans = TransformStamped()
+
+    rate = rospy.Rate(10.0)
+
     while not rospy.is_shutdown():
         try:
             # 4秒待機して各tfが存在すれば相対関係をセット
             trans = tfBuffer.lookup_transform(parent, child,
-                                              rospy.Time().now(),
-                                              rospy.Duration(4.0))
+                                              rospy.Time().now(),rospy.Duration(1.0))
             break
-        except (tf2_ros.ExtrapolationException):
-            pass
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,tf2_ros.ExtrapolationException):
+            rospy.loginfo("waiting...")
+            rate.sleep()
+            continue
 
     return trans.transform
 
@@ -178,12 +182,16 @@ def get_pose_relative_coordinate(targ_frame, p):
     tfBuffer = tf2_ros.Buffer()
     listener = tf2_ros.TransformListener(tfBuffer)
 
+    rate = rospy.Rate(10.0)
+
     while not rospy.is_shutdown():
         try:
             trans = tfBuffer.transform(p, targ_frame, rospy.Duration(4.0))
             break
-        except (tf2.LookupException):
-            pass
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException,tf2_ros.ExtrapolationException):
+            rospy.loginfo("waiting...")
+            rate.sleep()
+            continue
 
     return trans.pose
 
